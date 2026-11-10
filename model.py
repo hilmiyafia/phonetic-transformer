@@ -73,7 +73,7 @@ class Transformer(nn.Module):
     y = y @ self.project.mT
     return y
 
-  def sample(self, tokens, end_token=None, max_iteration=30):
+  def sample(self, tokens, end_token=None, max_iteration=50):
     with torch.no_grad():
       for _ in range(max_iteration):
         x = torch.as_tensor(tokens).to(self.embedding.device)[None]

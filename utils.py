@@ -9,29 +9,42 @@ class DictDataset(torch.utils.data.Dataset):
     self.tokens = [
       cfg.DATASET_START_SYMBOL, 
       cfg.DATASET_EQUAL_SYMBOL, 
+      cfg.DATASET_COMMA_SYMBOL,
       cfg.DATASET_END_SYMBOL]
     self.letters = []
     self.phonemes = []
     self.data = []
     self.masks = []
+    buffer = {}
     with open(path, encoding="utf-8") as file:
       for line in file:
         data = line.strip("\n").split("#")[0].split(" ")
         data = list(filter(lambda x: x != "", data))
         data[0] = data[0].split("(")[0].lower()
-        for i in range(len(data) - 1):
-          data[i + 1] = data[i + 1].upper()
-        self.data.append([cfg.DATASET_START_SYMBOL])
-        for char in data[0]:
-          if char not in self.letters:
-            self.letters.append(char)
-          self.data[-1].append(char)
-        self.data[-1].append(cfg.DATASET_EQUAL_SYMBOL)
-        for phoneme in data[1:]:
+        for i in range(1, len(data)):
+          data[i] = data[i].upper()
+        if data[0] not in buffer.keys():
+          buffer[data[0]] = []
+        buffer[data[0]].append(data[1:])
+    for key in buffer.keys():
+      self.data.append([cfg.DATASET_START_SYMBOL])
+      self.masks.append([0])
+      for char in key:
+        if char not in self.letters:
+          self.letters.append(char)
+        self.data[-1].append(char)
+        self.masks[-1].append(0)
+      self.data[-1].append(cfg.DATASET_EQUAL_SYMBOL)
+      self.masks[-1].append(0)
+      for i, item in enumerate(buffer[key]):
+        for phoneme in item:
           if phoneme not in self.phonemes:
             self.phonemes.append(phoneme)
           self.data[-1].append(phoneme)
-        self.masks.append([0] * (len(data[0]) + 2) + [1] * len(data[1:]))
+          self.masks[-1].append(1)
+        if i < len(buffer[key]) - 1:
+          self.data[-1].append(cfg.DATASET_COMMA_SYMBOL)
+          self.masks[-1].append(1)
     self.letters.sort()
     self.phonemes.sort()
     self.tokens += self.letters

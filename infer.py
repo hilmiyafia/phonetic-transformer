@@ -35,7 +35,14 @@ if __name__ == "__main__":
       if item == cfg.DATASET_EQUAL_SYMBOL: 
         phonemes.append([])
         continue
+      if item == cfg.DATASET_COMMA_SYMBOL:
+        phonemes.append([])
+        continue
       phonemes[-1].append(item)
     part_a.append("".join(phonemes[0]))
-    part_b.append("_".join(phonemes[1]))
-  print(f"{' '.join(part_a)}\n= {' '.join(part_b)}")
+    part_b.append([])
+    for part in phonemes[1:]:
+      part_b[-1].append("_".join(part))
+    part_b[-1] = " or ".join(part_b[-1])
+  part_b = '\n= '.join(part_b)
+  print(f"{' '.join(part_a)}\n= {part_b}")
